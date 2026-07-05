@@ -96,16 +96,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-latest
-            label: Windows
-          # Pinned: macos-latest migrates to macOS 26 from 2026-06-15
-          # (actions/runner-images#14167). v1.8.0 shipped from macOS 15;
-          # revalidate the Nuitka app build and ad-hoc codesign on the new
-          # image before unpinning.
-          - os: macos-15
+          # Temporary dry-run branch: macOS 26 image validation only.
+          - os: macos-26
             label: macOS
-          - os: ubuntu-latest
-            label: Linux
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     steps:
