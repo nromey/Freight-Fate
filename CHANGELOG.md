@@ -36,6 +36,13 @@
 
 ### Fixed
 
+- **Kilometer mode stays kilometers everywhere.** With units set to
+  kilometers, the dispatch board, job details, route selection, the
+  departure and deadhead announcements, exit callouts, pickup progress,
+  bobtail trips, and the settlement distance still spoke miles here and
+  there. Every spoken distance now follows your units setting, and one
+  mile is finally "1 mile", not "1 miles". Thanks to the forum for the
+  report.
 - **The engine load now follows throttle smoothly.** Engine effort remains
   audible when you accelerate or ease off, while manual releases and
   adaptive-cruise corrections blend gradually instead of making the engine

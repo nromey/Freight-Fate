@@ -228,7 +228,8 @@ class DrivingEventMixin:
         else:
             head = f"Signaling for the {stop.spoken_name} exit,"
         self.ctx.say(
-            f"{head} {ahead:.1f} miles ahead. Slow to {RAMP_MAX_MPH:.0f} or less for the ramp."
+            f"{head} {self.ctx.settings.distance_text(ahead, precise=True)} ahead. "
+            f"Slow to {RAMP_MAX_MPH:.0f} or less for the ramp."
         )
 
     def _exit_window_mi(self) -> float:
@@ -296,7 +297,7 @@ class DrivingEventMixin:
 
     def _destination_exit_announcement(self, stop, ahead: float) -> str:
         labeled = getattr(stop, "exit_phrase", "") or stop.exit_label
-        distance = f"{ahead:.0f} miles" if round(ahead) != 1 else "1 mile"
+        distance = self.ctx.settings.distance_text(ahead)
         core = (
             f"In {distance}, {labeled}, destination exit."
             if labeled
@@ -877,9 +878,10 @@ class DrivingEventMixin:
         return self.job.origin_facility_text()
 
     def _pickup_progress_summary(self) -> str:
+        s = self.ctx.settings
         return (
-            f"{self.trip.remaining_miles:.1f} miles remaining of "
-            f"{self.trip.total_miles:.1f} to pickup at "
+            f"{s.distance_text(self.trip.remaining_miles, precise=True)} remaining of "
+            f"{s.distance_text(self.trip.total_miles, precise=True)} to pickup at "
             f"{self._pickup_facility_text()}."
         )
 
@@ -917,9 +919,11 @@ class DrivingEventMixin:
             else f"Driving loaded to {self.job.spoken_destination}"
         )
         remaining = (
-            f"{self.trip.remaining_miles:.1f} of {self.trip.total_miles:.1f} miles"
+            f"{self.ctx.settings.distance_text(self.trip.remaining_miles, precise=True)}"
+            f" of {self.ctx.settings.distance_text(self.trip.total_miles, precise=True)}"
             if self.phase == DRIVE_PHASE_PICKUP
-            else f"{self.trip.remaining_miles:.0f} of {self.trip.total_miles:.0f} miles"
+            else f"{self.ctx.settings.distance_text(self.trip.remaining_miles)}"
+            f" of {self.ctx.settings.distance_text(self.trip.total_miles)}"
         )
         return [
             title,

@@ -253,7 +253,12 @@ class Job:
     def spoken_destination(self) -> str:
         return self.destination_spoken or self.destination
 
-    def describe(self, index: int | None = None, total: int | None = None) -> str:
+    def describe(
+        self,
+        index: int | None = None,
+        total: int | None = None,
+        distance_text: str = "",
+    ) -> str:
         prefix = f"Job {index} of {total}: " if index is not None else ""
         condition = market_condition(self.market_mult)
         market = f" Lane note: Market is {condition}." if condition != "steady" else ""
@@ -264,7 +269,7 @@ class Job:
         dest = "to " + self.destination_offer_text()
         return (
             f"{prefix}{self.weight_tons:.0f} tons of {self.cargo.label} "
-            f"{origin} {dest}. {self.distance_mi:.0f} miles. "
+            f"{origin} {dest}. {distance_text or f'{self.distance_mi:.0f} miles'}. "
             f"Pays {self.pay:,.0f} dollars. "
             f"Deadline {self.deadline_game_h:.0f} hours. "
             f"Equipment: {self.cargo.equipment}.{market}{endorsement}"

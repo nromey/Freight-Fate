@@ -68,14 +68,15 @@ def route_planning_summary(route: Route) -> str:
     )
 
 
-def route_departure_summary(route: Route) -> str:
+def route_departure_summary(route: Route, distance_text: str = "") -> str:
     toll_text = (
         f" Carrier toll estimate {route.estimated_tolls:,.0f} dollars."
         if route.estimated_tolls > 0
         else ""
     )
+    distance = distance_text or f"{route.miles:.0f} miles"
     return (
-        f"Loaded trip is {route.miles:.0f} miles via {', then '.join(route.highways)}.{toll_text}"
+        f"Loaded trip is {distance} via {', then '.join(route.highways)}.{toll_text}"
     )
 
 
@@ -111,7 +112,11 @@ class JobBoardState(MenuState):
         for i, job in enumerate(self.jobs):
             items.append(
                 MenuItem(
-                    job.describe(i + 1, len(self.jobs)),
+                    job.describe(
+                        i + 1,
+                        len(self.jobs),
+                        distance_text=self.ctx.settings.distance_text(job.distance_mi),
+                    ),
                     lambda j=job: self._accept(j),
                     help=(
                         f"Load offer from {job.origin_facility_text()} to "
@@ -168,7 +173,8 @@ class JobBoardState(MenuState):
         self.ctx.save_profile()
         self.ctx.say(
             f"Dispatch accepted from {terminal.name}. Deadhead "
-            f"{route.miles:.1f} miles on {route.highways[0]} to pickup at "
+            f"{self.ctx.settings.distance_text(route.miles, precise=True)} on "
+            f"{route.highways[0]} to pickup at "
             f"{job.origin_facility_text()}. "
             "Check in with the shipper when you arrive.",
             interrupt=True,
@@ -321,7 +327,7 @@ class JobDetailState(MenuState):
             f"Cargo: {job.cargo.label}.",
             f"Origin: {origin_text}.",
             f"Destination: {destination_text}.",
-            f"Distance: {job.distance_mi:.0f} miles.",
+            f"Distance: {self.ctx.settings.distance_text(job.distance_mi)}.",
             f"Pay: {job.pay:,.0f} dollars.",
             f"Dollars per mile: {dollars_per_mile:.2f}.",
             # The appointment reads in the receiver's local time, the way real
@@ -657,7 +663,9 @@ class RouteSelectState(MenuState):
         items = []
         for i, route in enumerate(self.routes):
             label = (
-                f"Route {i + 1}: {route.describe()}, {self._via_text(route)}. "
+                f"Route {i + 1}: "
+                f"{route.describe(self.ctx.settings.distance_text(route.miles))}, "
+                f"{self._via_text(route)}. "
                 f"{route_planning_summary(route)}"
             )
             items.append(
@@ -755,7 +763,8 @@ class RouteSelectState(MenuState):
         next_context = driving.trip.next_navigation_context()
         self.ctx.say(
             f"Navigation set for {self.job.destination_facility_text()}. "
-            f"{route_departure_summary(route)} {next_context} Departing now.",
+            f"{route_departure_summary(route, self.ctx.settings.distance_text(route.miles))} "
+            f"{next_context} Departing now.",
             interrupt=True,
         )
         self.ctx.push_state(driving)

@@ -778,7 +778,7 @@ class ArrivalState(MenuState):
             f"Money after settlement: {p.money:,.0f} dollars.",
             bonus_text + ".",
             f"Route: {' to '.join(self.ctx.world.spoken_city(c) for c in d.route.cities)}.",
-            f"Distance credited: {job.distance_mi:.0f} miles.",
+            f"Distance credited: {self.ctx.settings.distance_text(job.distance_mi)}.",
             cargo_condition + ".",
             f"Fuel remaining: {d.truck.fuel_fraction * 100:.0f} percent.",
             f"Truck damage now: {d.truck.damage_pct:.0f} percent.",
