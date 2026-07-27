@@ -1,23 +1,23 @@
-"""Ring rebuild final recipe (owner's pick): shallow synth + PV-stretched real.
+"""Ring rebuild ship recipe (owner-converged, 2026-07-27).
 
-The owner's ear converged here across the rounds: the firing-modulated
-synth bed at a SHALLOW depth (m=0.15 -- deeper reads as a raspberry, none
-reads as a jet), blended with a PHASE-VOCODER time-stretch of the approved
-real cut. The stretch is what makes the real layer legal again: 2 s of
-recording spread over ~5 s repeats nothing inside the loop, so it donates
-genuine diesel texture without donating a fingerprint. Each layer masks
-the other's flaw -- the synth hides PV smearing, the real hides synthetic
-regularity.
+The ear walked the whole space and landed here: each driving band is the
+REAL approved cut, tiled to ~5 s, at 75 percent -- with the firing-
+modulated comb-boosted synthesis underneath as camouflage for the tile
+repetition. The bed (engine_ring_pulse at FORCE_MOD 0.3, HARMONIC_GAIN
+1.7) never repeats, so the ear cannot lock onto the tiled layer's period;
+the real layer keeps the voice unmistakably the truck.
 
-Output per band: blend of
-  - engine_ring_pulse synthesis at FORCE_MOD = BLEND_SYNTH_MOD
-  - a phase-vocoder stretch of sound-source/ring-round0/<band>_original.wav
-    to the same length, wrap-spliced circular
-mixed at BLEND_REAL_GAIN (equal-power), RMS-matched to the original.
+Ear ledger that produced these numbers:
+- pure resynthesis = jet (stationary noise phase); pulse train = popcorn
+  (kurtosis 49 vs the cab's ~0); deep modulation = raspberry;
+- real share 80-90 = "shaky" (the cut's own envelope surge re-emerging);
+  75 = the sweet spot;
+- plain bed under 75 = faint turboprop; comb 1.7x bed = the pick.
 
-STAGE_ONLY=True writes mid-band candidates to the staging dir for the
-owner's ear; flip to False to render and install all four bands. Nothing
-is mirrored anywhere by this tool.
+Renders all four bands, installs into the ff-audio licensed overlay, and
+stages copies. MIRRORING (main worktree + Dropbox) stays a manual step
+after the owner's in-game confirmation lap -- rounds are one-way in the
+mirrors.
 
 Usage: uv run python tools/engine_ring_blend.py
 """
@@ -35,14 +35,12 @@ ROUND0 = os.path.join(REPO, "sound-source", "ring-round0")
 LICENSED_ENGINE = os.path.join(
     REPO, "src", "freight_fate", "assets", "sounds-licensed", "engine"
 )
-STAGE_DIR = r"C:\temp\ffsound\round2\brackets"
+STAGE_DIR = r"C:\temp\ffsound\round2\final"
 
-STAGE_ONLY = True
-BLEND_SYNTH_MOD = 0.15  # owner bracket pick
-BLEND_REAL_GAIN = 0.6  # real layer share (equal-power: synth gets sqrt(1-g^2))
-PV_FFT = 2048
-PV_HOP_S = 512
-SPLICE_S = 0.03
+REAL_SHARE = 0.75  # owner: 80-90 goes shaky, 75 is the sweet spot
+BED_MOD = 0.3  # deeper reads as a raspberry
+BED_COMB = 1.7  # the pvfp lesson: a prouder comb, less turboprop wash
+SPLICE_S = 0.025  # the tiled real layer is cut mid-tile: wrap-splice the mix
 
 BANDS = (
     ("low", 950.0),
@@ -61,92 +59,47 @@ def _pulse_module():
     return mod
 
 
-def pv_stretch(x: np.ndarray, out_len: int, sr: int) -> np.ndarray:
-    """Classic phase-vocoder time stretch to ``out_len`` samples."""
-    ratio = out_len / len(x)
-    hop_a = PV_HOP_S / ratio
-    window = np.hanning(PV_FFT)
-    omega = 2.0 * np.pi * np.arange(PV_FFT // 2 + 1) * 1.0 / PV_FFT
-    n_frames = int((out_len - PV_FFT) / PV_HOP_S)
-    out = np.zeros(out_len + PV_FFT)
-    norm = np.zeros(out_len + PV_FFT)
-    phase_acc = None
-    prev_phase = None
-    for i in range(n_frames):
-        a = int(round(i * hop_a))
-        if a + PV_FFT > len(x):
-            a = len(x) - PV_FFT
-        frame = np.fft.rfft(x[a : a + PV_FFT] * window)
-        mag, phase = np.abs(frame), np.angle(frame)
-        if phase_acc is None:
-            phase_acc = phase.copy()
-        else:
-            delta = phase - prev_phase - omega * hop_a
-            delta = np.mod(delta + np.pi, 2.0 * np.pi) - np.pi
-            true_freq = omega + delta / hop_a
-            phase_acc = phase_acc + true_freq * PV_HOP_S
-        prev_phase = phase
-        s = i * PV_HOP_S
-        out[s : s + PV_FFT] += np.fft.irfft(mag * np.exp(1j * phase_acc), PV_FFT) * window
-        norm[s : s + PV_FFT] += window**2
-    out = out[:out_len] / np.maximum(norm[:out_len], 1e-6)
-    # Wrap splice: crossfade the tail into the head's material (linear --
-    # correlated near-periodic ends), same recipe as fix_loop_seams.
-    w = int(SPLICE_S * sr)
-    head = out[:w].copy()
-    y = out[w:].copy()
-    ramp = np.linspace(0.0, 1.0, w)
-    y[-w:] = y[-w:] * (1.0 - ramp) + head * ramp
-    return y
-
-
-def render_band(mod, band: str, native: float, index: int) -> tuple[np.ndarray, int]:
-    """The blend: shallow-mod synthesis + PV-stretched real, equal-power."""
-    mod.FORCE_MOD = BLEND_SYNTH_MOD
-    mod.synthesize(band, native, index)  # writes overlay + stage; reread it
-    synth, sr = sf.read(os.path.join(mod.LICENSED_ENGINE, f"{band}.wav"), dtype="float64")
-    real, sr2 = sf.read(os.path.join(ROUND0, f"{band}_original.wav"), dtype="float64")
-    assert sr == sr2
-    stretched = pv_stretch(real, len(synth) + int(SPLICE_S * sr), sr)[: len(synth)]
-    if len(stretched) < len(synth):
-        stretched = np.pad(stretched, (0, len(synth) - len(stretched)), mode="wrap")
-    stretched *= np.sqrt(np.mean(real**2) / (np.mean(stretched**2) + 1e-12))
-    g_real = BLEND_REAL_GAIN
-    g_synth = float(np.sqrt(1.0 - g_real**2))
-    out = stretched * g_real + synth * g_synth
-    out *= np.sqrt(np.mean(real**2) / (np.mean(out**2) + 1e-12))
-    peak = np.max(np.abs(out))
-    if peak > 0.97:
-        out = out / peak * 0.97
-    return out, sr
-
-
 def main() -> None:
     mod = _pulse_module()
+    mod.FORCE_MOD = BED_MOD
+    mod.HARMONIC_GAIN = BED_COMB
     os.makedirs(STAGE_DIR, exist_ok=True)
-    bands = BANDS if not STAGE_ONLY else (BANDS[1],)  # mid first for the ear
-    for band, native in bands:
-        index = BANDS.index((band, native))
-        out, sr = render_band(mod, band, native, index)
-        stage_path = os.path.join(STAGE_DIR, f"{band}_m015_pv_blend.wav")
-        sf.write(stage_path, out.astype(np.float32), sr)
-        if not STAGE_ONLY:
-            sf.write(
-                os.path.join(LICENSED_ENGINE, f"{band}.wav"),
-                out.astype(np.float32),
-                sr,
-                subtype="PCM_16",
-            )
-        # Also stage the pure PV stretch for reference listening.
-        real, sr2 = sf.read(os.path.join(ROUND0, f"{band}_original.wav"), dtype="float64")
-        pv_only = pv_stretch(real, len(out) + int(SPLICE_S * sr2), sr2)[: len(out)]
-        pv_only *= np.sqrt(np.mean(real**2) / (np.mean(pv_only**2) + 1e-12))
-        sf.write(
-            os.path.join(STAGE_DIR, f"{band}_pv_only.wav"), pv_only.astype(np.float32), sr2
+    g_real = REAL_SHARE
+    g_synth = float(np.sqrt(1.0 - g_real**2))
+    for index, (band, native) in enumerate(BANDS):
+        mod.synthesize(band, native, index)  # writes the bed to the overlay
+        bed, sr = sf.read(
+            os.path.join(LICENSED_ENGINE, f"{band}.wav"), dtype="float64"
         )
-        print(f"{band}: staged m015+pv blend (real {BLEND_REAL_GAIN:.0%}) and pv-only")
-    if STAGE_ONLY:
-        print("\nSTAGE_ONLY: overlay holds the plain synth; blend is staged for the ear.")
+        real, sr2 = sf.read(
+            os.path.join(ROUND0, f"{band}_original.wav"), dtype="float64"
+        )
+        assert sr == sr2
+        tiled = np.tile(real, int(np.ceil(len(bed) / len(real))))[: len(bed)]
+        out = tiled * g_real + bed * g_synth
+        # The tiled layer is cut mid-tile at the loop end: classic wrap
+        # splice (tail crossfades into the head's preceding material,
+        # linear ramp -- correlated near-periodic ends), as fix_loop_seams.
+        w = int(SPLICE_S * sr)
+        head = out[:w].copy()
+        out = out[w:].copy()
+        ramp = np.linspace(0.0, 1.0, w)
+        out[-w:] = out[-w:] * (1.0 - ramp) + head * ramp
+        out *= np.sqrt(np.mean(real**2) / (np.mean(out**2) + 1e-12))
+        peak = np.max(np.abs(out))
+        if peak > 0.97:
+            out = out / peak * 0.97
+        sf.write(
+            os.path.join(LICENSED_ENGINE, f"{band}.wav"),
+            out.astype(np.float32),
+            sr,
+            subtype="PCM_16",
+        )
+        sf.write(
+            os.path.join(STAGE_DIR, f"{band}_final.wav"), out.astype(np.float32), sr
+        )
+        print(f"{band:8s} real {g_real:.0%} over comb-{BED_COMB:.1f} bed -> installed + staged")
+    print("\nInstalled to the ff-audio overlay ONLY. Mirror after the owner's lap.")
 
 
 if __name__ == "__main__":
