@@ -1,12 +1,16 @@
 # Freight Fate Roadmap
 
 
-> **RELEASE FREEZE (2026-07-27, owner + Josh):** the 1.9 line is
-> feature-frozen -- FIXES ONLY land here (playtest defects, CI reds,
-> data corrections). Every unchecked FEATURE bullet below now targets
-> the `feat/career-2.0` line (worktree `C:/dev/ff-2.0`) unless it is
-> explicitly a 1.9 fix. The driving school is gated off 1.9
+> **RELEASE SCOPE (amended 2026-07-27, owner + Josh):** the 1.9 line
+> takes FIXES plus exactly the final slate Josh named -- (1) the easy
+> multilane slice (wiring the already-baked lane counts into speech),
+> (2) curve navigation with steering, (3) rumble strips (one system
+> with curve nav), (4) the engine-ring spectra rebuild, and (5) the
+> NPR translator radio batch. Nothing else: every other unchecked
+> FEATURE bullet below targets the `feat/career-2.0` line (worktree
+> `C:/dev/ff-2.0`). The driving school stays gated off 1.9
 > (`DRIVING_SCHOOL_ENABLED`) and reopens on 2.0 to be finished.
+> Track plan: `docs/plan-1.9-final-slate.md`.
 
 > Current stable: **1.8.0** (shipped 2026-07-05). Next release: **1.9.0**, in
 > flight on the `feat/career-1.9` branch -- driving realism between the exits
@@ -1523,6 +1527,19 @@ section below and the Unreleased changelog; the release-line view:
       on a cadence (streams die: KDHX did), report dead mounts for
       re-pointing, and keep honest-coverage rules: a dead stream goes
       dark or gets a verified replacement, never a fake.
+- [ ] **NPR translator/repeater hunt for the remaining dark zones
+      (owner leads, 2026-07-27 -- next radio pass, 2.0 line).** The
+      Hi-Line pattern generalizes: query the FCC facility database for
+      service class FX (FM translator) along each dark corridor; every
+      translator record names its PRIMARY station -- resolve to the
+      parent network, BASS-verify the parent stream, seat it at the
+      translator's dial position. Owner's concrete leads: KQEI-FM 89.3
+      Sacramento (KQED repeater -- NPR flagship programming for the
+      Sacramento dial) and Winnemucca, likely a KUNR Reno translator --
+      which would start lighting the interior I-80 Nevada dark zone.
+      Full-power repeaters (like KQEI) surface in the ordinary FM query;
+      the FX class search is what catches the low-power translators
+      Wikipedia and the first sweeps missed.
 - [ ] **Fringe reception should burst, not fade (owner spec, 2026-07-23,
       ham-ear ruling).** Today the edge of a station's range plays static
       at a volume scaled by signal -- a knob, not a radio. Real analog
