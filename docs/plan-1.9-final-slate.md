@@ -54,6 +54,12 @@ it couples input, trip physics, and audio:
 - Josh's ask verbatim: "real speeds in for curves as well as panning
   sounds so we can steer through them." The speeds are already real;
   the steering and panning are this track.
+- Owner add-on (2026-07-27): once the tone generation exists, the
+  turn-signal clicks that mark lane changes become tones too, panned
+  to the signaling side -- the soft relay click is hard to hear for
+  some players. Not an invented cue: modern cabs play designed
+  indicator tones through the speakers; the bare relay click is the
+  vintage sound (and can return later as era equipment).
 
 ## Track C — NPR translator radio batch (ff-radio window, Oatis)
 
@@ -89,6 +95,16 @@ Sequencing note: Tracks B and D both touch trip/driving speech. D is
 speech-wiring only and should land FIRST (it is small); B rebases on
 top. If D finds itself needing trip-state changes, stop and flag Phil
 instead of making them.
+
+### Track D2 — divided-flag bake (ff-map, after D's done marker)
+
+Track B needs a baked `divided` flag per leg so the left road edge can
+sound like what it is: a median on a divided highway, the centerline
+with oncoming traffic on an undivided one. Only `lanes` is baked today;
+Phil infers in the meantime (interstate = divided, one lane per side =
+undivided) and the multilane US/state middle needs real OSM data.
+Full brief queued in the ff-map window's STATUS.md. Data-only branch
+off 1.9, honest-absence rule, done marker as usual.
 
 ## Fold order
 
