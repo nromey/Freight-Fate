@@ -250,6 +250,14 @@ and [FMCSA ELD recording guidance](https://www.fmcsa.dot.gov/hours-service/elds/
       out on a nine hundred mile run. Levels 1 to 3 stay on the trainer rig
       (onboarding wants one answer), and level 9 ends slip-seating for good
       -- seniority is a truck of your own.
+- [ ] **Spare-tractor drift: someone else drove it while you were gone.**
+      Real slip-seat spares are shared, so a truck you left three weeks
+      ago would come back with another driver's miles on it: part-full
+      tank, a little more brake and tire wear, fresh grime. Cheap to
+      fake now with a small deterministic drift applied on each draw,
+      and it becomes literally true once the AI driver fleet exists --
+      hired drivers put real miles on the shared spares. Owner-approved
+      idea 2026-07-27, paired explicitly with the AI-driver-fleet plan.
 - [x] **Trailer yards and drop-and-hook (2026-07-25).** Trailers are things
       in yards now, not just a type derived from the cargo. High-volume
       facility types stage loaded trailers; a farm elevator or a quarry does
