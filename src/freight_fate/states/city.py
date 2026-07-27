@@ -102,7 +102,7 @@ def first_dispatch_done(profile) -> bool:
 # not finished and 1.9 is feature-frozen. The code stays -- reverting
 # woven-in work mid-freeze invites regressions -- and the 2.0 line flips
 # this flag to finish it properly.
-DRIVING_SCHOOL_ENABLED = False
+DRIVING_SCHOOL_ENABLED = True  # the 2.0 line: finish the school
 
 
 def first_day_guidance_active(profile) -> bool:
