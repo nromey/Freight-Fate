@@ -68,6 +68,11 @@ MOD_DEPTHS = (0.0, 0.3, 0.5, 0.8, 1.2, 1.8)  # candidates for the roughness fit
 # also halved on that verdict); the smooth stationary bed IS the cab
 # wash, so the depth rides ON it, quietly.
 FORCE_MOD: float | None = 0.3
+# Comb strength: scales the harmonic skeleton against the noise bed. 1.0 =
+# the real cab's balance. The owner's ear favors the old pvfp candidates,
+# whose comb stands ~3x prouder than the real recording -- more growl,
+# less wash. RMS renormalization keeps the overall level put.
+HARMONIC_GAIN = 1.0
 MAX_PARTIAL_HZ = 9000.0
 PARTIAL_SEARCH_BINS = 2
 WANDER_DEPTH = 0.10
@@ -210,7 +215,7 @@ def synthesize(band: str, native_rpm: float, index: int) -> None:
     def mix(m: float) -> tuple[np.ndarray, float]:
         gate = np.maximum(0.05, 1.0 + m * s)
         gate /= np.sqrt(np.mean(gate**2))  # keep the noise power (and PSD) put
-        y = harmonic + noise * gate
+        y = harmonic * HARMONIC_GAIN + noise * gate
         y = y * np.sqrt(orig_power / (np.mean(y**2) + 1e-12))
         return y, roughness_index(y, sr, f_fire)
 
