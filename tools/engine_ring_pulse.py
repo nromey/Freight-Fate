@@ -54,18 +54,20 @@ BANDS = (
 TARGET_S = 5.0
 FIRINGS_PER_REV = 3  # inline-six, four-stroke
 CYL_SPREAD = (0.08, -0.05, -0.02)  # fixed per-rev firing strengths: the lope
-AMP_JITTER = 0.15  # per-event amplitude sigma
-TIME_JITTER = 0.03  # per-event timing sigma, fraction of the firing period
-SWELL_WIDTH = 0.9  # firing swell width, x firing period (cab-smoothed whump)
+AMP_JITTER = 0.07  # per-event amplitude sigma (owner: heavy jitter = raspberry spit)
+TIME_JITTER = 0.015  # per-event timing sigma, fraction of the firing period
+SWELL_WIDTH = 1.2  # firing swell width, x firing period (cab-smoothed whump)
 MOD_DEPTHS = (0.0, 0.3, 0.5, 0.8, 1.2, 1.8)  # candidates for the roughness fit
 # The roughness fit collapsed to 0.0 on every band -- the metric cannot
 # separate the truck from the jet (the harmonic comb's own beating
 # dominates the envelope in both). FORCE_MOD bypasses the fit with the
 # physical hypothesis instead: noise bursts phase-locked to the firing
 # comb, which is what a cylinder event actually does. The owner's ear is
-# the only instrument left that can grade this; if it still reads jet,
-# the brief says STOP and take the A/B set to Phil.
-FORCE_MOD: float | None = 0.8
+# the only instrument that can grade this. Ear ledger: 0.8 = "blowing a
+# raspberry at different speeds" (too deep, too sputtery -- jitter was
+# also halved on that verdict); the smooth stationary bed IS the cab
+# wash, so the depth rides ON it, quietly.
+FORCE_MOD: float | None = 0.3
 MAX_PARTIAL_HZ = 9000.0
 PARTIAL_SEARCH_BINS = 2
 WANDER_DEPTH = 0.10
