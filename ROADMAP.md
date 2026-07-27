@@ -1524,17 +1524,27 @@ section below and the Unreleased changelog; the release-line view:
       4-6 s with continuous harmonics over a fresh-random noise floor,
       shrinking the fingerprint itself; and the dual-loop LCM overlap
       idea stays deferred (doubles the stream count).
-- [x] **Ring rebuild: longer spectrally-extended cuts -- SHIPPED
-      2026-07-27 (final-slate Track A, owner ear sign-off: "chef's
-      kiss").** tools/engine_ring_extend.py resynthesizes each driving
-      band FROM its own approved cut at ~5 s: partials detected at
-      revolution-rate harmonics (firing lines AND lope sidebands),
-      rebuilt as exact circular sinusoids with slow per-octave wander,
-      over a fresh-random-phase noise floor shaped by the residual PSD.
-      No splice, no seam, no repeating envelope. Measured: envelope
-      self-similarity 0.30-0.52 -> 0.10-0.15, chug modulation
-      preserved, transients clean. Idle stays the real recording;
-      jakes untouched. Rumble-strip synthesis rides Track B.
+- [x] **Ring rebuild (final-slate Track A): attempted, measured,
+      REJECTED BY THE OWNER'S EAR -- the repaired real cuts ship
+      (2026-07-27).** The full arc, so nobody re-walks it: resynthesis
+      preserving the spectrum read as a JET (stationary noise phase);
+      pulse-train excitation read as POPCORN (the cab smooths firings
+      -- the real cut's kurtosis is ~0); deep firing modulation read as
+      a RASPBERRY, shallow as a TURBOPROP, blended under 75 percent
+      real as a FIREPLACE. Every synthesis moved the artifact, none
+      removed it: shaped noise is not combustion, and the owner's ear
+      out-resolved every metric we built (self-similarity, chug share,
+      kurtosis, firing-rate roughness ALL passed on candidates the ear
+      rejected). Verdict per the realism rule: the real 896 cuts --
+      seam-spliced, transient-patched, wobbled -- beat every synthetic
+      at the only test that matters. Their subtle envelope repeat is
+      accepted as the price of sounding like an actual truck. Tools
+      kept for the record: engine_ring_extend / engine_ring_pulse /
+      engine_ring_blend, plus the gate scripts and the ear ledger in
+      their docstrings. UNTRIED family if 2.0 ever reopens this:
+      granular reassembly OF THE REAL CUT (shuffled overlapping real
+      grains -- real material, aperiodic order), the one approach that
+      never puts synthetic noise in the cab.
 - [ ] **Lay on the horn (owner ask, 2026-07-23).** H plays one shortish
       horn sample today. Holding H should hold the horn -- attack, a
       seamless sustain loop for as long as the key is down, then the
