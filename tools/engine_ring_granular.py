@@ -43,6 +43,7 @@ LICENSED_ENGINE = os.path.join(
 STAGE_DIR = r"C:\temp\ffsound\granular"
 
 BANDS = (
+    ("idle", 680.0),
     ("low", 950.0),
     ("mid", 1150.0),
     ("midhigh", 1425.0),
