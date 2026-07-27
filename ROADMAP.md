@@ -1541,10 +1541,29 @@ section below and the Unreleased changelog; the release-line view:
       accepted as the price of sounding like an actual truck. Tools
       kept for the record: engine_ring_extend / engine_ring_pulse /
       engine_ring_blend, plus the gate scripts and the ear ledger in
-      their docstrings. UNTRIED family if 2.0 ever reopens this:
-      granular reassembly OF THE REAL CUT (shuffled overlapping real
-      grains -- real material, aperiodic order), the one approach that
-      never puts synthetic noise in the cab.
+      their docstrings. Granular reassembly was then tried the same day
+      (owner's free-roll call): revolution-synchronous shuffled grains,
+      first from the 896 (30-grain decks; the Mack's rattle makes
+      individual grains recognizable), then from the newer 60624 + 859
+      takes (deep decks -- but the tape is sound-effect material: air
+      events through the idle, level and color drift between spans;
+      hiss culls and level clustering helped, not enough). CLOSED as a
+      SOURCE-MATERIAL failure, not an architecture failure --
+      tools/engine_ring_granular + engine_grain_harvest work and wait.
+- [ ] **The field recording session that unlocks the engine voice
+      (owner's dream, 2026-07-27 -- turnkey whenever truck access
+      happens).** Every synthesis and reassembly attempt failed on the
+      tape, never on the math. One hour with a real truck and a fixed
+      in-cab mic yields everything: (1) sustained holds, 30 s or more
+      each, at idle / ~950 / ~1150 / ~1400 / ~1700 / ~1900 rpm, air
+      system QUIET (tanks full, no brake work, doors shut); (2) two
+      slow full sweeps idle -> governor -> idle; (3) cold start, jake
+      on a downgrade if roads allow, shutdown. Consistent mic position
+      beats fancy gear -- a rigidly mounted phone is acceptable, a
+      ham's field recorder is luxury. The harvest tools then turn that
+      tape into hundreds-deep grain decks per band in an afternoon,
+      and the repetition problem dies of abundance. The game's forum
+      has working truckers; the ask is one lunch break.
 - [ ] **Lay on the horn (owner ask, 2026-07-23).** H plays one shortish
       horn sample today. Holding H should hold the horn -- attack, a
       seamless sustain loop for as long as the key is down, then the
