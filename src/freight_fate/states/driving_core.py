@@ -269,6 +269,14 @@ CRUISE_COAST_MPH = 2.0  # feed-forward eases to nothing across this much overspe
 CRUISE_DROOP_MPH = 6.0
 CRUISE_FLOORED_THROTTLE = 0.98  # pedal genuinely on the floor, not merely deep
 CLIMB_CUE_COOLDOWN_S = 120.0  # a mountain is many pulls; say it once a hill
+# ...and only once the grade has genuinely won (dev fix f23a97ec, ported):
+# a road the G key calls level never counts as a climb, a shift's open
+# driveline is not evidence (drive_ratio is 0 mid-shift), and the condition
+# has to hold rather than catch one frame -- a limit rise raising the target
+# had cruise flooring the pedal on a slight grade and announcing defeat at
+# 71 mph while accelerating to 77 (playtest transcript, 2026-07-27).
+CRUISE_GRADE_BEATEN_PCT = 1.5
+CRUISE_GRADE_BEATEN_S = 3.0
 # Holding the target from above. Cutting fuel was cruise's only answer, so any
 # downgrade gentler than the descent assist's 2.5 percent trigger carried the
 # truck past the set speed and kept it there (bench trace: 2 percent down, 62
@@ -313,6 +321,22 @@ PCC_DESCENT_SHAVE_MPH = 2.0  # taken off before a downgrade, at 5 percent
 # instead, a three-mile pull read as cresting from a mile and a half out.
 PCC_CREST_WINDOW_MI = 0.4
 PCC_CUE_COOLDOWN_S = 45.0  # rolling country must not chant preview cues
+# Grade advisories, spoken whether or not cruise is on. A downgrade this steep
+# is the one a driver has to plan for -- gear and retarder before the hill, not
+# halfway down it.
+GRADE_WARN_PCT = 3.0  # steep enough to call out, either direction
+GRADE_WARN_CLEAR_PCT = 2.0  # hysteresis: under this the grade is behind you
+GRADE_WARN_LOOKAHEAD_MI = 0.75  # how far ahead the advisory reaches
+GRADE_WARN_SCAN_MI = 15.0  # how far a grade's run is measured before giving up
+GRADE_WARN_STEP_MI = 0.25  # sampling stride; matches the baked segment length
+GRADE_WARN_MIN_MPH = 25.0  # no advisories while crawling; nothing to plan for
+# A grade has to last to be worth planning for. The baked segments are around
+# half a mile each and the mountain corridors are full of short punchy dips: a
+# 4 percent blip lasting a third of a mile costs a couple of mph and warning
+# about it buried the hills that matter. Unfiltered, Knoxville to Asheville
+# spoke 76 advisories in 116 miles; at three quarters of a mile it speaks 4.
+GRADE_WARN_MIN_RUN_MI = 0.75
+GRADE_WARN_RESCAN_MI = 0.1  # how far the truck rolls between advisory scans
 ACC_BASE_GAP_SECONDS = 3.0  # clear-weather adaptive cruise gap
 ACC_LIMIT_OFFSET_MPH = 5.0  # predictive ACC holds this far over the posted
 # limit -- a with-traffic pace, sized to sit right at OVERSPEED_WARN_MPH

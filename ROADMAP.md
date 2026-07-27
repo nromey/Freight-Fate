@@ -184,6 +184,18 @@ and [FMCSA ELD recording guidance](https://www.fmcsa.dot.gov/hours-service/elds/
       speed it is holding. Once a hill (a re-arm at half droop plus a two
       minute floor), and terse speech keeps it -- the engine note and the
       downshifts already say the truck is working.
+- [x] **Climb cue no longer fires when cruise is winning (dev guards
+      ported 2026-07-27, same day as the flag).** `_say_cruise_out_of_truck`
+      now carries dev's three guards (f23a97ec): a `CRUISE_GRADE_BEATEN_PCT`
+      floor so it never fires on road the G key calls level, a mid-shift
+      hold (an open driveline is no evidence either way -- the debounce
+      pauses rather than resets, so a shift-heavy climb still gets its cue),
+      and a `CRUISE_GRADE_BEATEN_S` debounce so one frame is never enough.
+      Cooldown and terse suppression unchanged. Pinned by
+      `test_climb_cue_stays_quiet_when_cruise_is_winning` (target jumped
+      well above speed on near-level road: silence while accelerating);
+      the original repro (`tools/playtest_road.py --find limit-drop
+      --cruise 80 --verbosity 2 --headless 6`) runs clean.
 - [x] **Predictive cruise (2026-07-25).** Cruise reads `Trip.grade_at` a
       mile and a half ahead -- the baked grade segments resolve to a median
       half a mile, so this is a real road profile, not a smoothed guess --
@@ -2445,6 +2457,33 @@ From a batch of player reports:
   Plus and Minus adjust the set point by `CRUISE_STEP_MPH` (the real
   Accel/Coast buttons), so you engage once rolling and dial the target up to the
   speed you want; the truck accelerates up to it, capped by the limit offset.
+- [x] **Grade-aware adaptive cruise, and grades you can hear coming.** Shipped
+  on the 1.8.x nightly line from a player report: cruise could only add
+  throttle, so a downgrade carried the truck fifteen-plus mph past the set
+  speed in silence and into a fine. `Truck.hold_throttle` now feed-forwards the
+  grade under the wheels and P/I only trims from there; over the target cruise
+  takes the engine brake and snubs the drums when that is not enough, holding
+  the set speed on grades to eight percent with full air and cool shoes. It
+  hands back only the engine brake it switched on itself. Alongside it, a
+  spoken advisory for any grade of 3 percent or more lasting at least three
+  quarters of a mile (short dips filtered out -- unfiltered, Knoxville to
+  Asheville spoke 76 advisories in 116 miles), a once-per-grade line when
+  cruise concedes the hill, and the G key for the slope under the wheels, its
+  run, the truck's verdict, and the next steep grade ahead.
+- [x] **`tools/playtest_road.py`: drop into a chosen piece of road.** Built
+  alongside the grade work, because walking the menus to a specific hill takes
+  minutes and lands somewhere slightly different every time. Finds a road
+  feature by evidence (`--find downgrade|upgrade|zone|limit-drop|stop`, with
+  `--scan` to list candidates), then starts the real game already rolling at
+  it with the truck, cargo, weather, hour, and cruise set as asked -- or
+  `--headless N` for a speed/gear/jake/air trace instead of a window. Searching
+  reads the world data alone, so `--scan` never opens a window. Its sibling
+  `tools/playtest.py` still drives a whole delivery headlessly for transcripts.
+- [ ] Follow-ups the dev line does not have: staged retarder control (dev's
+  engine brake is one switch, so cruise holds by cycling it against the
+  throttle rather than picking a stage), the predictive read of the grade
+  ahead, and a pull downshift for climbs the automatic currently rides out in
+  top gear. All three exist on `feat/career-1.9`; the merge takes 1.9's side.
 
 - [x] **Window-model on-time bonus.** Shipped on the 1.8.x nightly line:
   `Job.payout` used to scale its on-time bonus by unused deadline (max 15%
