@@ -2,7 +2,7 @@
 
 The producer half of in-game map updates: collects the indexed world data
 tree and the radio catalog, hashes every file, and emits a pack directory
-holding a manifest plus a zip of payload files. With ``--previous`` (the
+holding a manifest plus an .ffmap archive (a zip, LZMA inside) of payload files. With ``--previous`` (the
 last published manifest) the zip carries only files whose hashes changed —
 the monthly diff pack a player downloads in seconds. Without it, the zip
 is a full continental pack — the "install North America" download.
@@ -116,7 +116,10 @@ def write_pack(
     removed: list[str],
 ) -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
-    zip_name = f"{manifest['pack']}-{manifest['version']}.zip"
+    # .ffmap, not .zip (owner call 2026-07-30): joins the .ffsave family,
+    # and a stray double-click gets an unknown-extension shrug instead of
+    # Windows Explorer choking on a zip whose LZMA entries it cannot read.
+    zip_name = f"{manifest['pack']}-{manifest['version']}.ffmap"
     zip_path = out_dir / zip_name
     # LZMA, not deflate (owner call 2026-07-30): compression cost is paid
     # once on the producer's server, and JSON shrinks ~40% further under
