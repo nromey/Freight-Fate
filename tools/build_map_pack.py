@@ -119,10 +119,14 @@ def write_pack(
     out_dir.mkdir(parents=True, exist_ok=True)
     zip_name = f"{manifest['pack']}-{manifest['version']}.zip"
     zip_path = out_dir / zip_name
-    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
+    # LZMA, not deflate (owner call 2026-07-30): compression cost is paid
+    # once on the producer's server, and JSON shrinks ~40% further under
+    # LZMA -- real money once a whole-world pack exists. Python's zipfile
+    # reads and writes ZIP_LZMA natively, so the client needs no new deps.
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_LZMA) as zf:
         for rel in sorted(payload_paths):
             info = zipfile.ZipInfo(rel, date_time=ZIP_EPOCH)
-            info.compress_type = zipfile.ZIP_DEFLATED
+            info.compress_type = zipfile.ZIP_LZMA
             zf.writestr(info, files[rel].read_bytes())
     manifest = dict(manifest)
     manifest["payload"] = {
