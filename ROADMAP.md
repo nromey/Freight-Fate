@@ -1676,7 +1676,11 @@ section below and the Unreleased changelog; the release-line view:
       request. Continental packs are the unit, monthly diffs update the
       installed ones, and the game stops growing every time the map
       does -- which is the only way Canada, Alaska, and any future
-      overseas corridors scale.
+      overseas corridors scale. Packs carry RADIO DATA too (owner, same
+      day): the station catalog rots faster than any map layer -- stream
+      URLs die weekly -- so monthly packs deliver healed streams and new
+      stations without waiting on a game release. One pack, both
+      datasets, one manifest.
 - [x] **Personal playlist stations from M3U files (landed 2026-07-20).**
       Drop `.m3u`/`.m3u8` files into the Playlists folder next to the
       saves (created on first run) and each becomes a dial station under
