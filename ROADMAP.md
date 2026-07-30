@@ -4065,7 +4065,14 @@ section below and the Unreleased changelog; the release-line view:
       works. Two guards: the min-game-version gate (a pack for a newer
       schema refuses politely on an older game) and never applying
       mid-drive. Determinism intact -- baked-snapshot distribution, not
-      live data.
+      live data. AND the size dividend (owner, same day): once maps are
+      packs, they leave the game download entirely -- the base build
+      ships lean (engine, sounds, UI), first load asks which continent
+      you drive and installs that pack, and other continents install on
+      request. Continental packs are the unit, monthly diffs update the
+      installed ones, and the game stops growing every time the map
+      does -- which is the only way Canada, Alaska, and any future
+      overseas corridors scale.
 - [x] **Personal playlist stations from M3U files (landed 2026-07-20).**
       Drop `.m3u`/`.m3u8` files into the Playlists folder next to the
       saves (created on first run) and each becomes a dial station under
