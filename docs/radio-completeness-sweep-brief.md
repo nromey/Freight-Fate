@@ -1,20 +1,29 @@
 # Radio completeness sweep — agent brief
 
 _Working brief for the parallel sourcing agents. Not player-facing. The goal
-is a full non-commercial roster per market, so the in-cab dial reflects the
-whole city, not just one flagship._
+is a full roster per market, so the in-cab dial reflects the whole city, not
+just one flagship._
+
+**Scope change, 2026-07-30 (owner):** commercial stations are no longer
+excluded. The earlier sweeps deliberately built a non-commercial dial, and
+they succeeded — but the result skews hard to news and classical (271 "news",
+126 "classical", 7 "rock", no country and no sports), which is not what a
+driver actually rides. Commercial country, classic rock, sports, and
+news/talk are now in scope.
 
 ## What you are producing
 
-For every city in your shard, enumerate **all real non-commercial radio
-stations** and return a structured record for each one that has a real,
-station-owned, playable internet stream. You do research and hand back
-data. **You never edit the catalog, never touch `src/`, never run the game.**
-You write exactly one output file (path given in your task) and nothing else.
+For every city in your shard, enumerate **all real radio stations** and
+return a structured record for each one that has a real, station-owned,
+playable internet stream. You do research and hand back data. **You never
+edit the catalog, never touch `src/`, never run the game.** You write exactly
+one output file (path given in your task) and nothing else.
 
 ## Include / exclude
 
-INCLUDE (non-commercial only):
+INCLUDE:
+- **Commercial stations** — country, classic rock, top 40, sports, news/talk,
+  Spanish-language, oldies. These are the formats the dial is thinnest on.
 - NPR member / public-radio stations (news-talk, and separate classical,
   jazz, or news-only sisters — a market often has 2-3).
 - Community radio (LPFM `-LP`, listener-run, e.g. WEVL Memphis, KEXP-style).
@@ -26,10 +35,39 @@ INCLUDE (non-commercial only):
   transmitter, different `stream_url` mount and `format`.
 
 EXCLUDE:
-- Any commercial station (iHeart/Cumulus/Audacy pop, country, sports, etc.).
 - Any station with no real, station-owned playable stream.
-- Aggregator links: **no TuneIn, no iHeartRadio, no Streema/Radio-Garden**
-  proxy URLs. Find the station's OWN mount.
+- **Stored aggregator proxy URLs: no TuneIn, no Streema/Radio-Garden, no
+  `radio.garden` listen links.** Find the station's OWN mount.
+- **TuneIn entirely**, as a source as well as a URL. They have filed real
+  DMCA takedowns asserting their API is partner-only. Do not query it.
+
+## Discovery vs. storage — the rule that replaced the commercial ban
+
+The aggregator rule above is about **what you store**, not what you consult.
+The distinction matters now that commercial stations are in scope:
+
+- **Fine:** consulting a directory at build time to find out that a station
+  exists and where its stream lives.
+- **Not fine:** storing that directory's proxy URL, or making the shipped
+  game depend on the directory at runtime.
+
+iHeart's API is usable under this rule *because it returns the broadcaster's
+own mount* — Cumulus stations resolve to `playerservices.streamtheworld.com`,
+Audacy to `live.amperwave.net/direct/...`, and so on. Harvest the metadata,
+store the broadcaster's URL, and the shipped game never contacts iHeart.
+
+**Audacy: reach their stations through iHeart's catalog, never through
+`api.audacy.com`.** Their terms flatly prohibit accessing the service through
+any other interface; iHeart's catalog already carries 262 Audacy stations
+(at 128 kbps, better than iHeart's own 48 kbps), via a distribution deal
+Audacy itself signed.
+
+**Honor refusals.** A mount that answers with a "listen in our app"
+announcement, a 403, or a User-Agent block is `supported: false` with an
+honest note — the same treatment as the geo-blocked AFN mounts. Never spoof
+a User-Agent or Referer to get past one. Send a descriptive agent
+(`FreightFate/1.9`); Triton explicitly asks third-party players to identify
+themselves.
 
 ## The stream URL — the hard part
 
@@ -117,10 +155,15 @@ EXCLUDE:
 
 ## Honest darkness
 
-If a city genuinely has **no** non-commercial station with a real stream, say
-so — add its slug to the `dark` list with a one-line reason. **Never invent a
-station to un-dark a market.** Honest absence is required (a test even
-enforces interior-Nevada staying dark).
+If a city genuinely has **no** station with a real stream, say so — add its
+slug to the `dark` list with a one-line reason. **Never invent a station to
+un-dark a market.** Honest absence is required (a test even enforces
+interior-Nevada staying dark).
+
+Tag every record with its `station_type` as usual. Commercial records get
+`station_type: "commercial"`, which is what the in-game filter keys on — a
+player who turns commercial stations off must be left with exactly the
+public/community/college dial the earlier sweeps built.
 
 ## Your output file
 
