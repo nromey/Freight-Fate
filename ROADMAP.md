@@ -1650,6 +1650,26 @@ section below and the Unreleased changelog; the release-line view:
       when anything needs attention, so a scheduled run can alert.
       Curation stays with the recipes. Future: fold in landmark and
       interchange drift.
+- [ ] **In-game map updates: the monthly map-pack channel (owner plan,
+      2026-07-29).** The map king produces, the game consumes. Producer
+      side: a monthly job re-imports the Overpass snapshot (the widened
+      MS-02 instance once the 96GB lands), runs refresh_map_data.py
+      grown from report-only into report-then-curate, and after owner
+      approval a packer diffs the freshly baked world_data tree against
+      the last published release -- per-state sharding means the diff is
+      just the changed shards plus the index -- and publishes shards +
+      manifest (version, date, hashes, min-game-version) to static
+      hosting (owner's server, Josh's, or a GitHub map-data release).
+      Client side: at the MAIN MENU ONLY, the game checks the manifest,
+      announces "new maps available", downloads changed shards, verifies
+      hashes (same signing discipline as cloud saves), swaps atomically,
+      and keeps the previous tree for rollback. Legs are slug-keyed so
+      careers survive; a mid-trip save on a changed leg re-creates the
+      trip from new data on resume, which is how the loader already
+      works. Two guards: the min-game-version gate (a pack for a newer
+      schema refuses politely on an older game) and never applying
+      mid-drive. Determinism intact -- baked-snapshot distribution, not
+      live data.
 - [x] **Personal playlist stations from M3U files (landed 2026-07-20).**
       Drop `.m3u`/`.m3u8` files into the Playlists folder next to the
       saves (created on first run) and each becomes a dial station under
