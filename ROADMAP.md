@@ -1680,7 +1680,19 @@ section below and the Unreleased changelog; the release-line view:
       day): the station catalog rots faster than any map layer -- stream
       URLs die weekly -- so monthly packs deliver healed streams and new
       stations without waiting on a game release. One pack, both
-      datasets, one manifest.
+      datasets, one manifest. DECISIONS (owner, 2026-07-29): packs are
+      ANONYMOUS downloads -- no orinks.net or any account required to
+      play, ever (GitHub release assets are anonymous HTTPS and the
+      measured sizes are trivial: full North America zips to 8.7MB,
+      monthly diffs to a few MB). International play = missions ship
+      with the game, maps come via an in-game map manager (download the
+      continent you start in on first load, others on request). PRODUCER
+      TOOL SHIPPED same day: tools/build_map_pack.py -- full or diff
+      packs, sha256 manifest with min_game_version, byte-identical
+      deterministic zips, --verify mode that is the client's own check;
+      tests/test_map_pack.py pins all of it. Remaining: the curate-and-
+      apply growth of refresh_map_data.py, publish automation, and the
+      2.0 client (manifest check, map manager menu, atomic swap).
 - [x] **Personal playlist stations from M3U files (landed 2026-07-20).**
       Drop `.m3u`/`.m3u8` files into the Playlists folder next to the
       saves (created on first run) and each becomes a dial station under
