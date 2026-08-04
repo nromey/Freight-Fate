@@ -7,7 +7,14 @@ import logging
 from dataclasses import asdict, dataclass
 
 from .models.profile import data_dir
-from .units import spoken_distance
+from .units import (
+    MILES_TO_KM,
+    distance_unit,
+    hud_speed,
+    spoken_distance,
+    spoken_gap,
+    to_distance,
+)
 
 log = logging.getLogger(__name__)
 
@@ -243,10 +250,14 @@ class Settings:
     @classmethod
     def load(cls) -> Settings:
         s = cls()
+        defaults = cls()
         data = None
         try:
             with open(s.path, encoding="utf-8") as f:
                 data = json.load(f)
+            if not isinstance(data, dict):
+                log.warning("Settings file is not a settings object; using defaults")
+                data = {}
             for k, v in data.items():
                 if hasattr(s, k):
                     setattr(s, k, v)
@@ -348,7 +359,21 @@ class Settings:
             "speech_pitch",
             "speech_volume",
         ):
-            setattr(s, attr, max(0.0, min(1.0, float(getattr(s, attr)))))
+            value = getattr(s, attr)
+            # A level that is not a number -- null, true, a list, a word --
+            # used to raise straight out of load() and take the game's whole
+            # startup with it. It falls back to the default instead. A bool
+            # counts as damage, not as a level: false would read as silence.
+            if isinstance(value, bool) or not isinstance(value, (int, float, str)):
+                log.warning("Setting %s is not a level (%r); using the default", attr, value)
+                value = getattr(defaults, attr)
+            else:
+                try:
+                    value = float(value)
+                except ValueError:
+                    log.warning("Setting %s is not a level (%r); using the default", attr, value)
+                    value = getattr(defaults, attr)
+            setattr(s, attr, max(0.0, min(1.0, float(value))))
         if not isinstance(s.radio_station_id, str) or not s.radio_station_id:
             s.radio_station_id = "route_playlist"
         return s
@@ -377,13 +402,13 @@ class Settings:
     def speed_text(self, mph: float) -> str:
         if self.imperial_units:
             return f"{spoken_distance(mph, 'mile')} per hour"
-        return f"{spoken_distance(mph * 1.609344, 'kilometer')} per hour"
+        return f"{spoken_distance(mph * MILES_TO_KM, 'kilometer')} per hour"
 
     def distance_text(self, miles: float, precise: bool = False) -> str:
         """Spoken distance in the player's unit. ``precise`` keeps one
         decimal for short spans ("1.2 miles ahead") where whole numbers
         would read as zero or lie by half a mile."""
-        value = miles if self.imperial_units else miles * 1.609344
+        value = to_distance(miles, self.imperial_units)
         unit = "mile" if self.imperial_units else "kilometer"
         text = f"{value:.1f}" if precise else f"{value:.0f}"
         plural = "" if float(text) == 1.0 else "s"
@@ -403,8 +428,30 @@ class Settings:
                 3: "three quarters of a mile",
                 4: "one mile",
             }.get(quarters, self.distance_text(miles, precise=True))
-        km = miles * 1.609344
+        km = miles * MILES_TO_KM
         if km >= 0.95:
             return self.distance_text(miles, precise=True)
         meters = max(1, round(km * 10)) * 100
         return f"{meters} meters"
+
+    def gap_text(self, miles: float) -> str:
+        """A spoken distance kept to one decimal, for close-range cues."""
+        return spoken_gap(miles, self.imperial_units)
+
+    def hud_speed_text(self, mph: float) -> str:
+        """Speed for the visual HUD, in the short written form."""
+        return hud_speed(mph, self.imperial_units)
+
+    def distance_value(self, miles: float, decimals: int = 0, *, grouped: bool = False) -> str:
+        """A bare converted distance, for readouts that name the unit once
+        after two numbers ("12 of 400 miles")."""
+        group = "," if grouped else ""
+        return f"{to_distance(miles, self.imperial_units):{group}.{decimals}f}"
+
+    def distance_unit_text(self, *, plural: bool = True) -> str:
+        """The player's distance unit, to pair with ``distance_value``."""
+        return distance_unit(self.imperial_units, plural=plural)
+
+    def per_distance(self, per_mile: float) -> float:
+        """A per-mile rate as a rate in the player's own distance unit."""
+        return per_mile if self.imperial_units else per_mile / MILES_TO_KM

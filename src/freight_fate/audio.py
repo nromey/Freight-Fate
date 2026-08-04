@@ -79,6 +79,14 @@ CH_ALERT = 16  # continuous alert tones: the stop bar's solid zone
 RESERVED = 14
 NUM_CHANNELS = 32
 
+# A held alert tone is a dead man's switch. Its owner re-asserts it every
+# frame through hold_alert, and it stops on its own the moment that stops --
+# a menu opening over the drive, the moment it warned about ending, an owner
+# that lost track of it. A continuous tone in a blind player's headphones
+# must never be able to outlive the thing it is warning about: the stop bar's
+# solid tone once ran until the game was killed (Shane, 2026-08-03).
+ALERT_HOLD_TIMEOUT_S = 0.4
+
 # Horn sustain loop points (samples, at the asset's 44100 Hz). The horn is an
 # attack -> sustain -> release sound: play the attack, loop this tuned interior
 # region while the key/button is held, then let the release tail ring out.
@@ -96,6 +104,7 @@ ENGINE_BANDS = (
     ("engine/midhigh", 1425.0),
     ("engine/high", 1900.0),
 )
+ENGINE_BAND_KEYS = frozenset(key for key, _native in ENGINE_BANDS)
 # Crossfades live in a narrow window around each adjacent pair's GEOMETRIC
 # midpoint (log-space), this fraction of the gap wide. Two things follow:
 # a cut never plays far from its recorded speed (rate excursions stay under
@@ -169,14 +178,36 @@ def _asset_path(key: str, extensions: tuple[str, ...]) -> Path | None:
     return None
 
 
+def _pack_carries_whole_ring(pack) -> bool:
+    """Whether ``pack`` holds every engine band cut.
+
+    Cached on the pack itself; membership only, so nothing is decompressed.
+    """
+    complete = getattr(pack, "_ff_whole_ring", None)
+    if complete is None:
+        complete = all(
+            any(pack.has(f"{key}.{ext}") for ext in ("ogg", "wav")) for key in ENGINE_BAND_KEYS
+        )
+        pack._ff_whole_ring = complete
+    return complete
+
+
 def _asset_bytes(key: str, extensions: tuple[str, ...]) -> tuple[bytes, str] | None:
     """Bytes and extension for a sound key, from the shipped pack or loose files.
 
     Frozen builds carry the sounds packed into ``sounds.pak``
     (see ``assets_pack``); source checkouts read the editable
     ``assets/sounds`` tree.
+
+    The engine bands are the one exception to pack-then-loose: they crossfade
+    into each other, so they have to come from one recording. A pack that
+    predates the checkout beside it would otherwise serve four bands from the
+    pack and the fifth off disk, blending two different engines. Unless the
+    pack carries the whole ring, the ring reads from the loose tree.
     """
     pack = assets_pack.open_default()
+    if pack is not None and key in ENGINE_BAND_KEYS and not _pack_carries_whole_ring(pack):
+        pack = None
     if pack is not None:
         for ext in extensions:
             data = pack.read(f"{key}.{ext}")
@@ -886,8 +917,33 @@ class _BassBackend:
             except BassError:
                 log.warning("No audio device; using the BASS no-sound device")
                 self._output = Output(device=BASS_NO_SOUND_DEVICE)
+        self._log_output_device()
         self._load_plugins()
         self.enabled = True
+
+    def _log_output_device(self) -> None:
+        """Name the output device the game is about to play through.
+
+        A player reporting silence is far more often pointed at the wrong
+        device -- speech on one output, the game on the system default -- or
+        muted, than missing a sound file. The log could not tell those apart
+        without naming the device, so it names it.
+        """
+        try:
+            index = self._output.get_device()
+            names = self._output.get_device_names()
+            name = names[index - 1] if 0 < index <= len(names) else "unknown"
+        except Exception:  # diagnostics must never be the thing that fails
+            log.info("Audio output device: could not be identified", exc_info=True)
+            return
+        if index != BASS_NO_SOUND_DEVICE:
+            log.info("Audio output device %d: %s", index, name)
+        elif os.environ.get("SDL_AUDIODRIVER", "").lower() == "dummy":
+            # Asked for: headless runs, tests, and the release smoke check.
+            log.info("Audio output: no-sound device, as asked for by this run")
+        else:
+            # Not asked for, and the reason a player hears nothing.
+            log.warning("Audio output is the BASS no-sound device; nothing will be audible")
 
     def _load_plugins(self) -> None:
         """Load optional BASS addon plugins (currently BASSHLS).
@@ -1716,6 +1772,9 @@ class AudioEngine:
         self._bank_order: dict[str, list[str]] = {}  # base -> remaining shuffled cuts
         self._last_bank_key: dict[str, str] = {}  # base -> cut played last
         self._asset_known: dict[str, bool] = {}  # key -> resolves anywhere
+        self._logged_volumes: tuple[float | None, ...] | None = None
+        self._alert_hold_key = ""  # continuous alert tone being re-asserted
+        self._alert_hold_s = 0.0  # time left before the hold lapses
         log.info("Audio backend: %s", self._impl.name)
 
     @staticmethod
@@ -1892,6 +1951,29 @@ class AudioEngine:
         """Stop looping ``channel`` and let its release tail play to the end."""
         self._impl.release_sustain_loop(channel, fade_ms)
 
+    # -- held alert tones ------------------------------------------------------
+
+    def hold_alert(self, key: str, volume: float = 1.0, fade_ms: int = 60) -> None:
+        """Sound the continuous alert tone ``key`` for the next moment only.
+
+        Call this every frame for as long as the alert applies. The tone
+        starts on the first call and stops itself a fraction of a second
+        after the calls stop, so it can never be left ringing by a caller
+        that returned early, ended, or lost the frame to a menu. Calling it
+        again after a silencing transition brings the same tone back.
+        """
+        self.start_loop(CH_ALERT, key, volume=volume, fade_ms=fade_ms)
+        self._alert_hold_key = key
+        self._alert_hold_s = ALERT_HOLD_TIMEOUT_S
+
+    def release_alert(self, fade_ms: int = 120) -> None:
+        """Stop a held alert tone now, rather than waiting for it to lapse."""
+        if not self._alert_hold_key:
+            return
+        self._alert_hold_key = ""
+        self._alert_hold_s = 0.0
+        self.stop_loop(CH_ALERT, fade_ms=fade_ms)
+
     # -- truck engine ----------------------------------------------------------------
 
     def engine_start(self, play_start_sound: bool = True) -> None:
@@ -1912,6 +1994,13 @@ class AudioEngine:
     def update(self, dt: float) -> None:
         """Advance time-based audio fades. Call once per frame from the main loop."""
         self._impl.update(dt)
+        # The held-alert watchdog. This runs from the app loop no matter which
+        # screen is up, so a tone whose owner stopped updating goes quiet on
+        # its own instead of running until the player quits the game.
+        if self._alert_hold_s > 0.0:
+            self._alert_hold_s -= dt
+            if self._alert_hold_s <= 0.0:
+                self.release_alert()
 
     def set_engine_rpm(self, rpm: float, throttle: float = 0.0) -> None:
         self._impl.set_engine_rpm(rpm, throttle)
@@ -1971,8 +2060,12 @@ class AudioEngine:
         self._impl.reverse_stop()
 
     def stop_world(self) -> None:
-        """Stop engine, road, weather, and ambience (leaving UI sfx alone)."""
+        """Stop engine, road, weather, ambience, and any held alert tone
+        (leaving UI sfx alone)."""
         self.engine_stop(shutdown_sound=False)
+        # A pause or an arrival cuts the alert now, without the watchdog's
+        # fraction of a second of tone over the top of the menu.
+        self.release_alert(fade_ms=200)
         for ch in (
             CH_ROAD,
             CH_WEATHER,
@@ -1982,6 +2075,10 @@ class AudioEngine:
             CH_AIR,
             CH_JAKE,
             CH_RADIO_FX,
+            # The edge texture is road noise like the rest: left out, a driver
+            # who paused with a tire on the rumble strip took the strip into
+            # the menu with them. It comes back on its own when the drive does.
+            CH_EDGE,
         ):
             self.stop_loop(ch, fade_ms=400)
 
@@ -2020,6 +2117,16 @@ class AudioEngine:
         ui: float | None = None,
     ) -> None:
         self._impl.set_volumes(master, sfx, music, weather, engine, ui)
+        # The other half of a silence report: a healthy backend playing at
+        # zero looks exactly like a broken one until the levels are written
+        # down. Logged on change only, so it cannot flood the file.
+        levels = (master, sfx, music, weather, engine, ui)
+        if levels != self._logged_volumes:
+            self._logged_volumes = levels
+            log.info(
+                "Volumes: master=%s sfx=%s music=%s weather=%s engine=%s ui=%s",
+                *levels,
+            )
 
     def shutdown(self) -> None:
         self._impl.shutdown()

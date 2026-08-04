@@ -45,6 +45,13 @@
   announcements at all -- press G whenever you want the grade instead. The
   advisory is there so you can decide before the hill starts: when in doubt,
   take manual control of the speed rather than leaving it to cruise.
+- **A new song on the country stations.** "Dust on the Highway" opens on a
+  lone slide guitar over a rumbling bass, the drums lock in, and organ and
+  harmonica trade fills through a gritty lead-guitar solo before the band
+  slams back in for the finish. Three and a half minutes with no vocals, so
+  it plays under the road without talking over it. You will hear it on The
+  Rawhide out of Dallas, Big Wheel Country out of Nashville, Prairie Line
+  out of Kansas City, and Big Sky Country out of Billings.
 
 - **G also names the next grade ahead.** Alongside the slope under the wheels
   and the truck's verdict on it, G now tells you what the next steep grade is,
@@ -536,6 +543,26 @@
   The Driving school item leaves the terminal menu for now: the lessons
   are not complete, and this release locks its features down. The school
   returns finished in the next major version.
+- **Automatic Mastodon posts moved to their own hashtag.** Deliveries shared
+  to your Mastodon account now carry the FreightFateRuns hashtag instead of
+  the FreightFate one. Players use the FreightFate tag to share their own
+  thoughts about the game, so anyone who had muted it to keep the automatic
+  posts out of their timeline was quietly losing those conversations too.
+  The two are separate now: FreightFate is for people talking, FreightFateRuns
+  is for the game posting. There is nothing to change in the game. If you
+  muted the FreightFate tag because of the delivery posts, you can unmute it
+  and mute FreightFateRuns instead, and if you liked following other drivers'
+  runs, follow FreightFateRuns to keep seeing them. The change is on the
+  orinks.net side, so it already applies to every version of the game.
+
+- **The automatic transmission works each gear harder before shifting up.**
+  Pulling a load, the engine now runs into a higher, more realistic RPM range
+  in every gear instead of grabbing the next one early, so climbs sound and
+  feel like the truck is actually working. Running empty, the two-gear jumps
+  the box likes on flat ground now land far enough above the downshift point
+  that it no longer shifts up and immediately drops back down. Contributed by
+  corykad ([@corykad](https://github.com/corykad)) in
+  [PR #144](https://github.com/Orinks/Freight-Fate/pull/144).
 
 - **The radio dial moved to semicolon and apostrophe.** The brackets used to
   tune it; they now switch categories in the new message review, so the dial
@@ -1000,6 +1027,38 @@
 
 ### Fixed
 
+- **The stop bar's steady tone is calmer.** The tone that means you are on top
+  of the stop bar was high and sharp -- hard to sit through for the seconds it
+  is meant to hold. It is now a much lower, steadier tone, easy on the ear
+  while still carrying over the engine. It stays just as easy to tell from
+  the ticks leading up to it: where those quicken, this one drops.
+- **The stop bar's steady tone always stops.** The continuous tone that means
+  you are on top of the stop bar could be left sounding for the rest of the
+  drive: reach it creeping up to a red light, and once you crossed the bar
+  the tone stayed on, straight through the menus, until the game was closed.
+  It now ends the moment the bar is behind you, whether you waited out the
+  red, crossed on the green, or stopped for a sign, and it goes quiet on its
+  own if anything else ever gets in the way of ending it -- pausing or
+  arriving silences it at once. The tone comes back only when the next stop
+  bar is under your bumper. Rumble strip sound left playing when you paused
+  on the strip is gone the same way.
+- **A damaged settings file no longer takes the game down with it.** If your
+  settings file was left half-written by a crash, or ended up holding
+  something that is not a volume level where a volume level belongs, the game
+  could refuse to start at all. Anything it cannot read as a level now falls
+  back to that setting's normal value, and it says so in its log. A level you
+  really did set is untouched -- turning something down to nothing still
+  means nothing.
+- **The engine keeps one voice.** When the game's sound file was older than
+  the game itself, the engine could take part of its voice from the old file
+  and part from the new one, crossfading between two different recordings as
+  the revs climbed. The engine now takes every layer of its voice from the
+  same place, so it sounds like one engine again.
+- **A bad sound file no longer costs you every sound.** If the game's sound
+  file is damaged -- a download that stopped short, a copy that did not
+  finish -- the game used to go completely silent. Now it says so in its log
+  and plays whatever sound it can still find, and a single unreadable sound
+  inside the file costs only that one sound instead of all of them.
 - **Cruise no longer claims a hill has beaten it while it is winning.** When
   a rising speed limit or a higher set speed put the target well above the
   truck, cruise flooring the pedal to catch up could be announced as losing
@@ -1027,6 +1086,15 @@
   now wanders very slightly in speed and level -- the way a real
   engine's rhythm breathes -- so there is no fixed cycle left to
   notice.
+- **Picking a lower gear with the clutch held no longer damages the engine.**
+  Downshifting several gears at highway speed used to bring the redline
+  warning and engine damage the moment the gear was selected, even with the
+  clutch to the floor and the engine disconnected from the wheels. The
+  warning and the damage now begin only if you release the clutch while the
+  gear is too low for your road speed. Contributed by corykad
+  ([@corykad](https://github.com/corykad)) in
+  [PR #144](https://github.com/Orinks/Freight-Fate/pull/144).
+
 - **The repeat key gives back the hazard warning, not the assist that talked
   over it.** With automatic emergency braking on, "Emergency braking engaged."
   cuts in over the warning that set it off. Stepping back with the repeat key
@@ -1537,6 +1605,91 @@
   holding you still, the engine answers the throttle across its whole
   range -- so you can warm it up, build air faster, or just listen to it
   come alive -- and it settles back to a steady idle when you let off.
+
+## 1.8.7 - 2026-07-30
+
+### Added
+
+- **The drivers board is now reachable from the pause menu.** You can hear
+  who is hauling right now without quitting to the main menu. The new
+  "Drivers board" item sits between Settings and Abandon job in the pause
+  menu. Viewing the board shares nothing about you. Contributed by wleicht
+  ([@wleicht](https://github.com/wleicht)) in
+  [PR #136](https://github.com/Orinks/Freight-Fate/pull/136).
+
+### Changed
+
+- **Reviewing what the game said now works the same way everywhere.** Comma
+  and period stepped through recent speech on every screen, while a fuller set
+  of review keys only ever worked while driving, and the two kept separate
+  histories. There is one history now, and every review key works on every
+  screen. Comma still repeats what was just said and steps back from there,
+  period moves forward, and you can now also jump to the oldest or newest
+  message with Ctrl and those same keys, switch between all messages, general
+  messages and driving events with the bracket keys, and copy the message you
+  are on with Ctrl+C, whether you are driving or sitting in a menu. Each
+  press reads the message and nothing else, the last 200 are kept, and moving
+  through menus is no longer mixed into the history, so what you step back
+  through is what actually happened. Checking the pause menu
+  mid-run no longer leaves a "Paused" and a "Resumed" between every pair of
+  announcements. New announcements do not move your place while you are
+  reviewing, and once you have left the keys alone for ten seconds the next
+  press starts fresh from the newest message with all categories showing, so
+  comma always repeats what was just said instead of picking up where you
+  left off earlier in the run. Typing a driver name still takes punctuation
+  as punctuation. Raised by wleicht
+  ([@wleicht](https://github.com/wleicht)) in
+  [issue #134](https://github.com/Orinks/Freight-Fate/issues/134).
+
+- **Your online driver token is now kept in your computer's password store.**
+  If you have linked the game to an Orinks account, the secret half of those
+  credentials used to sit in a plain text file alongside your saves, readable
+  by anything that could reach the folder. It now lives in Windows Credential
+  Manager, the macOS Keychain, or your Linux keyring, the same places your
+  browser keeps saved passwords. The change happens by itself the next time
+  the game starts, and your Driver ID stays where it was, so there is nothing
+  to re-enter and nothing to set up. If secure storage is unavailable, the
+  old credentials remain intact instead of being removed, and Windows will
+  not put a new token into a plain text fallback file. The setup menu explains
+  how to retry without claiming that unsaved credentials connected. Thanks
+  to trodick, [PR #133](https://github.com/Orinks/Freight-Fate/pull/133).
+
+### Fixed
+
+- **Automatic speed control no longer says it is resuming as you pull up to
+  a pickup.** Rolling up to the gate with cruise or the speed keeper on, you
+  were told speed control was paused and would resume after you departed with
+  the load, and then a moment later heard it announce that it was resuming
+  after all, before it switched off again. It was genuinely re-engaging for a
+  fraction of a second. It now stays put until you actually depart, so the
+  announcement you hear at the gate is the one about arriving.
+
+## 1.8.6.2 - 2026-07-29
+
+### Fixed
+
+- **Accepting a dispatch after an update no longer closes the game.** The
+  dispatch board is kept in your career, so the board you were looking at
+  before an update could still list a pickup that the update had closed.
+  Pressing Enter on one of those loads shut the game down without a word. The
+  board is now rebuilt from the current world the first time you open it after
+  an update, so you see loads you can actually take. If you somehow reach a
+  closed pickup anyway, the game says so and sends you back for a fresh board
+  instead of quitting.
+
+- **Kilometers are now used everywhere, not just out on the road.** With units
+  set to metric, the driving cues spoke kilometers but several other screens
+  still read miles, so the same trip was measured two different ways depending
+  on where you asked. The dispatch board's job details, the distance and rate
+  it quotes, the summary you hear when you take a load or deadhead to a
+  pickup, the exit and hazard callouts, your remaining distance to a pickup,
+  the delivery summary's credited distance, your lifetime distance in career
+  stats, and the on-screen speed and trip readouts now all use the unit you
+  chose. Career stats also says "Lifetime kilometers" instead of labelling
+  kilometers as miles, and the pay rate reads as dollars per kilometer with
+  the figure recalculated to match. Nothing changes if you play in miles.
+  Contributed by otaviols ([@otaviols](https://github.com/otaviols)) in
+  [PR #142](https://github.com/Orinks/Freight-Fate/pull/142).
 
 ## 1.8.6.1 - 2026-07-28
 
