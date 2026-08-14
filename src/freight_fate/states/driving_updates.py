@@ -2,7 +2,15 @@
 from __future__ import annotations
 
 from .. import engine_audio
-from ..audio import CH_AIR, CH_BRAKE, CH_EDGE, CH_JAKE, CH_RADIO_FX, CH_ROAD
+from ..audio import (
+    CH_AIR,
+    CH_BRAKE,
+    CH_EDGE,
+    CH_JAKE,
+    CH_RADIO_FX,
+    CH_ROAD,
+    JAKE_LOOP_RPMS,
+)
 from ..audio_fades import curve as _resolve_curve
 from ..models.enforcement import (
     CHAIN_LAW_FINE,
@@ -82,12 +90,12 @@ _shift_recovery_curve = _resolve_curve(SHIFT_LOAD_RECOVERY_CURVE)
 # Low-pass raw throttle before it reaches the audible engine-load envelope.
 ENGINE_LOAD_SMOOTH_S = 0.45
 
-# The jake's voice: synthesized growl loops at fixed rpm points, picked by
-# nearest engine speed. Retarding power goes as cylinders x rpm, so the
-# level grows with both the selected stage and the revs; the loop cuts out
-# through shifts and clutch (the stair-stepping signature: buzz, gap,
-# resume higher -- jake_v3.py's design notes, owner-approved 2026-07-18).
-JAKE_LOOP_RPMS = (1200, 1400, 1600, 1800, 2000, 2200)
+# The jake's voice: growl loops at fixed rpm points (audio.JAKE_LOOP_RPMS,
+# which also seals them into the cab), picked by nearest engine speed.
+# Retarding power goes as cylinders x rpm, so the level grows with both the
+# selected stage and the revs; the loop cuts out through shifts and clutch
+# (the stair-stepping signature: buzz, gap, resume higher -- jake_v3.py's
+# design notes, owner-approved 2026-07-18).
 # Two, four, six cylinders. Stage one stays modest twice over: the owner
 # heard 0.45 as still too loud (2026-07-22), and no one has a verified
 # recording of a real low stage -- do not dramatize what we cannot confirm.

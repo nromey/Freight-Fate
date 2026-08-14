@@ -391,8 +391,13 @@ onto exit signalling.
       runtime output verified byte-identical to the approved render) to
       the five band cuts at load: -16 dB shelf past 1 kHz, 2.4 kHz
       lowpass, +5 dB body, 63 Hz boom, 1.7/3.3 ms early reflections,
-      RMS-matched, circular so loops stay seamless. Classic voice and
-      jake deliberately untouched this round.
+      RMS-matched, circular so loops stay seamless. Classic voice
+      untouched. The JAKE ZONES seal too (owner's ear on the recorded
+      1600: "definitely external"): every zone wears the same glass,
+      real or synth, so a zone crossing never doubles as a
+      cab-character jump. Whether the real-vs-synth character still
+      shows at the 1600 crossing under a real drive = first-nightly
+      listening item.
 - [ ] **Cabin-state intensities for the cab transfer.** The moderate
       variant from the same auditions is the natural "window cracked"
       setting; wire intensity selection to the doors/windows mechanic

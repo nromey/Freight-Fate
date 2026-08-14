@@ -141,6 +141,12 @@ ENGINE_LOOP_KEY = "engine/idle"
 # the shared key IS the rebuilt idle, and the Settings "classic" promise
 # (the original engine sound) must not quietly follow it.
 ENGINE_CLASSIC_LOOP_KEY = "engine_classic/idle"
+# The jake zones: growl loops at fixed rpm points (synth, except the recorded
+# 1600), picked by nearest engine speed in the driving layer. Full keys, not
+# a prefix: the referenced-assets sweep reads string literals, and each key
+# here is a file that must exist.
+JAKE_LOOP_RPMS = (1200, 1400, 1600, 1800, 2000, 2200)
+ENGINE_JAKE_KEYS = frozenset(f"engine/jake_{rpm}" for rpm in JAKE_LOOP_RPMS)
 ENGINE_RPM_IDLE = 600.0
 ENGINE_RPM_MAX = 2200.0
 ENGINE_FREQ_MAX_MULT = 1.75
@@ -292,14 +298,17 @@ _CAB_SEALED: dict[str, tuple[bytes, str]] = {}
 def _playback_bytes(key: str, extensions: tuple[str, ...]) -> tuple[bytes, str] | None:
     """Bytes for a sound as the player should HEAR it.
 
-    The engine band cuts pass through the sealed-cab transfer
-    (``cab_filter``, owner's ear 2026-08-13): the recorded voice reads as a
-    truck heard from outside, and the cab between engine and ear is applied
-    here, at load, rather than baked into assets -- feedback rounds are
-    parameter tweaks. The classic voice's ogg keeps its old sound untouched,
-    and non-engine keys pass straight through.
+    The engine band cuts and the jake zones pass through the sealed-cab
+    transfer (``cab_filter``, owner's ear 2026-08-13): the recorded voice
+    reads as a truck heard from outside -- the recorded 1600 jake
+    unmistakably so -- and the cab between engine and ear is applied here,
+    at load, rather than baked into assets, so feedback rounds are
+    parameter tweaks. Every jake zone wears the same glass, real or synth:
+    a zone crossing must never double as a cab-character jump. The classic
+    voice's ogg keeps its old sound untouched, and non-engine keys pass
+    straight through.
     """
-    if key not in ENGINE_BAND_KEYS:
+    if key not in ENGINE_BAND_KEYS and key not in ENGINE_JAKE_KEYS:
         return _asset_bytes(key, extensions)
     cached = _CAB_SEALED.get(key)
     if cached is not None:

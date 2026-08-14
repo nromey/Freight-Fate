@@ -8,7 +8,9 @@
   beside the truck.** The glass and firewall soften the engine's high end,
   the body carries its low rumble, and the sound sits around you the way a
   real cab delivers it. Testers said the engine felt like it was outside
-  the truck -- this is the fix. The classic engine voice is untouched.
+  the truck -- this is the fix. The engine brake's growl passes through
+  the same glass, so it stays part of the same truck at every speed. The
+  classic engine voice is untouched.
 
 - **Running off the pavement no longer talks in a loop.** Drifting onto the
   shoulder or into the median now speaks when it happens, again if it gets

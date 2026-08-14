@@ -78,3 +78,23 @@ def test_playback_bytes_seals_engine_bands_only():
         assert audio._playback_bytes(other, ("ogg", "wav")) == audio._asset_bytes(
             other, ("ogg", "wav")
         )
+
+
+def test_playback_bytes_seals_every_jake_zone():
+    # The recorded 1600 jake is an exterior recording, and the synth zones
+    # must wear the same glass so a zone crossing never doubles as a
+    # cab-character jump.
+    for rpm in (1200, 1400, 1600, 1800, 2000, 2200):
+        key = f"engine/jake_{rpm}"
+        raw = audio._asset_bytes(key, ("ogg", "wav"))
+        assert raw is not None
+        assert raw[1] == "wav"
+        sealed = audio._playback_bytes(key, ("ogg", "wav"))
+        assert sealed is not None and sealed[0] != raw[0]
+
+
+def test_playback_bytes_leaves_the_classic_voice_alone():
+    # Classic's fans chose the old sound as it was; its ogg passes through.
+    raw = audio._asset_bytes(audio.ENGINE_CLASSIC_LOOP_KEY, ("ogg", "wav"))
+    assert raw is not None
+    assert audio._playback_bytes(audio.ENGINE_CLASSIC_LOOP_KEY, ("ogg", "wav")) == raw
