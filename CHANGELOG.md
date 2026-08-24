@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### Fixed
+
+- **Driving keys now work with JAWS without the pass-through key.** JAWS
+  hands the game each arrow key as an instant tap rather than a held key,
+  so holding Up, Down, Left, or Right to accelerate, brake, or steer did
+  nothing until you pressed JAWS Key and 3 before every key. The game now
+  reads the stream of taps JAWS sends while a key is held as the hold it
+  is, so you drive with the same keys as everyone else, and letting go
+  releases the pedal or the wheel within a fraction of a second. Menus
+  were never affected. One limit remains: JAWS never tells the game how
+  long you held a key, so a single quick tap of a pedal reads as a short
+  press of about half a second.
+
 ## 1.8.8.1 - 2026-08-08
 
 ### Added
